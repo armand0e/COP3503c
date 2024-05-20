@@ -139,13 +139,12 @@ int main() {
     }
     // print formatted histogram
     cout << endl;
-    for (int i = 0; i<dataStrings.size(); i++)
+    for (int i = 0; i < dataStrings.size(); i++)
     {
-        string datastr = dataStrings[i];
-        string datapoints = "";
-        for (int j = 1; j <=  dataIntegers[i]; j++) datapoints += '*';
-
-        cout << right << setw(20) << datastr << ' ' << datapoints << endl;
+      string datastr = dataStrings[i];
+      string datapoints = "";
+      for (int j = 1; j <=  dataIntegers[i]; j++) datapoints += '*';
+      cout << right << setw(20) << datastr << ' ' << datapoints << endl;
     }
   }
 
