@@ -1,3 +1,95 @@
-//
-// Created by armand0e on 5/20/2024.
-//
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include "Vehicle.h"
+using namespace std;
+
+int main()
+{
+    int input;
+    cin >> input;
+    
+    if (input == 1)
+    {
+        Vehicle defaultVehicle;
+        defaultVehicle.Display();
+    }
+    else if (input == 2)
+    {
+        Vehicle customVehicle1("Tesla", "Model S", 2019, 46122, 42);
+        customVehicle1.Display();
+        Vehicle customVehicle2("Chrysler", "New Yorker", 1984, 2000, 100423);
+        customVehicle2.Display();
+
+    }
+    else if (input == 3)
+    {
+        Vehicle customVehicle1("Chrysler", "New Yorker", 1984, 2000, 100423);
+        Vehicle customVehicle2("COP3503", "Moped", 2019, 2200, 45);
+        cout << "Price of the vehicles: $" << customVehicle1.GetPrice() + customVehicle2.GetPrice() << endl; 
+        
+    }
+    else if (input == 4)
+    {
+        Vehicle customVehicle1("Razor", "Scooter", 2019, 39, 950);
+        cout << customVehicle1.GetYearMakeModel();
+    }
+    else if (input == 5)
+    {
+        Vehicle muscleCar("Ford", "Mustang", 1968, 82550, 71000);
+        Vehicle electric("Toyota", "Prius", 2014, 27377, 12);
+        Vehicle suv("Mazda", "CX5", 2018, 28449, 11047);
+    
+        vector<Vehicle> vehicles;
+    
+        // TODO: Add the three Vehicle objects to the vector using the push_back() function
+        vehicles.push_back(muscleCar);
+        vehicles.push_back(electric);
+        vehicles.push_back(suv);
+        // TODO: Print out each Vehicle by looping through the vector and calling the Display() function for each Vehicle object
+        for(int i=0; i < vehicles.size(); i++) {
+            vehicles[i].Display();
+        }
+    }
+    else if (input == 6)
+    {
+        Vehicle car;
+        car.Display();
+        Showroom showroom;
+        showroom.ShowInventory();
+        Dealership dealer;
+        dealer.ShowInventory();
+    }
+    else if (input == 7)
+    {
+        Showroom ex("Example Showroom", 2);
+        Vehicle buggati("Bugatti", "Chiron", 2018, 12447, 4);
+        Vehicle chrysler("Chrysler", "Sebring", 2013, 1819, 22987);
+        Vehicle dodge("Dodge", "Caravan", 1992, 0, 0);
+        ex.AddVehicle(buggati);
+        ex.AddVehicle(chrysler);
+        ex.AddVehicle(dodge);
+        ex.ShowInventory();
+    }
+    else if (input == 8)
+    {
+        Dealership dealer("Example Dealership", 2);
+        Showroom room1("Room One", 2);
+        Showroom room2("Room Two", 2);
+        Vehicle dodge("Dodge", "Neon", 1998, 12351, 932018);
+        Vehicle fordE("Ford", "Escort", 2001, 20354, 125900);
+        Vehicle fordF("Ford", "F-150", 2004, 24352.5, 7392); 
+        room1.AddVehicle(dodge);
+        room2.AddVehicle(fordE);
+        room2.AddVehicle(fordF);
+        dealer.AddShowroom(room1);
+        dealer.AddShowroom(room2);
+        dealer.ShowInventory();
+
+        cout << endl << "Using just the GetAveragePrice() function" << endl;
+        cout << "Average price of the cars in the dealership: $" << fixed << setprecision(2) << dealer.GetAveragePrice() << endl;
+
+    }
+    
+    return 0;
+}
