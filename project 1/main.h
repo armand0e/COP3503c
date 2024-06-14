@@ -11,29 +11,36 @@ public:
     class Node
     {
         private:
-            T* self = nullptr;
-            T* next = nullptr;
-            T* prev = nullptr;
+            T data;
+            Node* next = nullptr;
+            Node* prev = nullptr;
         public:
             Node();
-            void setSelf(T* data);
-            void setNext(T* data);
-            void setPrev(T* data);
+            void setData(T new_data);
+            void setNext(T new_data);
+            void setPrev(T new_data);
             T* getNext();
             T* getPrev();
-            T* getSelf();
+            T* getData();
             
     };
-
-    
     /////////////////////////// Construction/Destruction ///////////////////////////
 
     // Constructor
-    LinkedList();
+    LinkedList() 
+    {
+
+    }
     // Copy Constructor
-    LinkedList(const LinkedList &d);
+    LinkedList(const LinkedList<t>& list)
+    {
+
+    }
     // Destructor
-    ~LinkedList();
+    ~LinkedList() 
+    {
+
+    }
 
     ////////////////////////////////// Behaviors //////////////////////////////////
 
@@ -62,11 +69,49 @@ public:
     Node* Tail();
     const Node* Tail() const;
 
+    ////////////////////////////////// Insertion //////////////////////////////////
+    void AddHead(const T& data)
+    {
+      Node()
+    }
+    void AddTail(const T& data)
+    {
+      
+    }
+    void AddNodesHead(const T* data, unsigned int count)
+    {
+
+    }
+    void AddNodesTail(const T* data, unsigned int count)
+    {
+
+    }
+    void InsertAfter (Node* node, const T& data) 
+    {
+
+    } 
+    void InsertBefore(Node* node, const T& data)
+    {
+        
+    }
+    void InsertAt (const T& data, unsigned int index)
+    {
+
+    }
+/*==l=l Removal ＝ニニニ*/
+bool RemoveHead(); bool RemoveTail();
+unsigned int Remove(const T&data); bool RemoveAt (unsigned int index);
+void Clear);
+/*==== Operators ====*/
+const T& operator[](unsigned int index) const;
+T& operator[](unsigned int index);
+bool operator==(const LinkedList<T>& rhs) const;
+LinkedList<T>& operator=(const LinkedList<T>& rhs);
 private:
     Node *head = nullptr;
     Node *tail = nullptr;
-    Node *next = nullptr;
     int node_count = 0;
+    vector<Node*> node_list;
 };
 
 
