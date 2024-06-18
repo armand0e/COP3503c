@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include <string>
+#include <stdexcept>
 using namespace std;
 
 template <typename T> 
@@ -25,6 +25,7 @@ public:
     unsigned int NodeCount() const;
     void FindAll(vector<Node*>& outData, const T& value) const;
     const Node* Find(const T& data) const;
+    Node* Find(const T& data);
     const Node* GetNode(unsigned int index) const;
     Node* GetNode(unsigned int index);
     Node* Head();
@@ -87,10 +88,21 @@ void LinkedList<T>::PrintReverse() const {
         current = current->prev;
     }
     cout << current->data << endl;
-    
 }
-//void PrintForwardRecursive(const Node* node) const;
-//void PrintReverseRecursive(const Node* node) const;
+template <typename T>
+void LinkedList<T>::PrintForwardRecursive(const Node* node) const {
+    if (node != nullptr) {
+        cout << node->data << endl;
+        PrintForwardRecursive(node->next);
+    }
+}
+template <typename T>
+void LinkedList<T>::PrintReverseRecursive(const Node* node) const {
+    if (node != nullptr) {
+        cout << node->data << endl;
+        PrintReverseRecursive(node->prev);
+    }
+}
 
 //////////////////////////////////// Accessors ////////////////////////////////////
 template <typename T>
@@ -109,6 +121,17 @@ void LinkedList<T>::FindAll(vector<Node*>& outData, const T& value) const {
 }
 template <typename T>
 const typename LinkedList<T>::Node* LinkedList<T>::Find(const T& data) const {
+    Node* current = head;
+    while (current != nullptr) {
+        if (current->data == data) {
+            return current;
+        }
+        current = current->next;
+    }
+    return nullptr;
+}
+template <typename T>
+typename LinkedList<T>::Node* LinkedList<T>::Find(const T& data) {
     Node* current = head;
     while (current != nullptr) {
         if (current->data == data) {
@@ -144,17 +167,14 @@ template <typename T>
 typename LinkedList<T>::Node* LinkedList<T>::Head() {
     return head;
 }
-
 template <typename T>
 const typename LinkedList<T>::Node* LinkedList<T>::Head() const {
     return head;
 }
-
 template <typename T>
 typename LinkedList<T>::Node* LinkedList<T>::Tail() {
     return tail;
 }
-
 template <typename T>
 const typename LinkedList<T>::Node* LinkedList<T>::Tail() const {
     return tail;
@@ -195,14 +215,12 @@ template <typename T>
 void LinkedList<T>::AddNodesHead(const T* data, unsigned int count) {
     for (int i = count - 1; i >= 0; i--) {
         AddHead(data[i]);
-        node_count++;
     }
 }
 template <typename T>
 void LinkedList<T>::AddNodesTail(const T* data, unsigned int count) {
     for (int i = 0; i < count; i++) {
         AddTail(data[i]);
-        node_count++;
     }
 }
 template <typename T>
@@ -214,7 +232,7 @@ void LinkedList<T>::InsertAfter (Node* node, const T& data) {
         newNode->prev = node;
         tail = newNode;
     }
-    //otherwise
+    // otherwise
     else {
         Node* temp = node->next;
         node->next = newNode;
@@ -222,6 +240,7 @@ void LinkedList<T>::InsertAfter (Node* node, const T& data) {
         newNode->next = temp;
         temp->prev = newNode;
     }
+    node_count++;
 }
 template <typename T>
 void LinkedList<T>::InsertBefore(Node* node, const T& data) {
@@ -232,7 +251,7 @@ void LinkedList<T>::InsertBefore(Node* node, const T& data) {
         newNode->next = node;
         head = newNode;
     }
-    //otherwise
+    // otherwise
     else {
         Node* temp = node->prev;
         node->prev = newNode;
@@ -240,31 +259,85 @@ void LinkedList<T>::InsertBefore(Node* node, const T& data) {
         newNode->prev = temp;
         temp->next = newNode;
     }
+    node_count++;
 }
 template <typename T>
-void LinkedList<T>::InsertAt (const T& data, unsigned int index) {
-    if (index >= node_count) {
+void LinkedList<T>::InsertAt(const T& data, unsigned int index) {
+    // if index is larger than node count, throw an error
+    if (index > node_count) { 
         throw out_of_range("Error: List index out of range.");
     }
-    // if inserting at the head
+    // if index is the head
     if (index == 0) {
         AddHead(data);
-    }
-    // if inserting at the tail
-    else if (index == node_count-1) {
+    } 
+    // if index is the tail
+    else if (index == node_count) { 
         AddTail(data);
-    }
+    } 
     // otherwise
     else {
-        InsertAfter(GetNode(index-1), data);
+        Node* node = GetNode(index);
+        InsertBefore(node, data);
     }
 }
 
 ///////////////////////////////////// Removal /////////////////////////////////////
-//bool RemoveHead(); 
-//bool RemoveTail();
-//unsigned int Remove(const T&data); 
-//bool RemoveAt (unsigned int index);
+template <typename T>
+bool LinkedList<T>::RemoveHead() {
+    if (head == nullptr) return false;
+    Node* temp = head;
+    head = head->next;
+    if (head != nullptr) head->prev = nullptr;
+    else tail = nullptr;
+    delete temp;
+    node_count--;
+    return true;
+} 
+template <typename T>
+bool LinkedList<T>::RemoveTail() {
+    if (tail == nullptr) return false;
+    Node* temp = tail;
+    tail = tail->prev;
+    if (tail != nullptr) tail->next = nullptr;
+    else head = nullptr;
+    delete temp;
+    node_count--;
+    return true;
+}
+template <typename T>
+unsigned int LinkedList<T>::Remove(const T& data) {
+    unsigned int count = 0;
+    Node* current = head;
+    while (current != nullptr) {
+        if (current->data == data) {
+            Node* toDelete = current;
+            if (current->prev) current->prev->next = current->next;
+            if (current->next) current->next->prev = current->prev;
+            if (current == head) head = current->next;
+            if (current == tail) tail = current->prev;
+            current = current->next;
+            delete toDelete;
+            node_count--;
+            count++;
+        } else {
+            current = current->next;
+        }
+    }
+    return count;
+}
+template <typename T>
+bool LinkedList<T>::RemoveAt(unsigned int index) {
+    if (index >= node_count) return false;
+    Node* toDelete = GetNode(index);
+    if (toDelete->prev) toDelete->prev->next = toDelete->next;
+    if (toDelete->next) toDelete->next->prev = toDelete->prev;
+    if (toDelete == head) head = toDelete->next;
+    if (toDelete == tail) tail = toDelete->prev;
+    delete toDelete;
+    node_count--;
+    return true;
+}
 template <typename T>
 void LinkedList<T>::Clear() {
     // Traverse the list and delete each node to free memory
@@ -287,7 +360,6 @@ template <typename T>
 const T& LinkedList<T>::operator[](unsigned int index) const {
     return GetNode(index)->data;
 }
-
 template <typename T>
 T& LinkedList<T>::operator[](unsigned int index) {
     return GetNode(index)->data;
@@ -349,7 +421,6 @@ LinkedList<T>::LinkedList(const LinkedList<T>& list) {
         current = current->next;
     }
 }
-
 template <typename T>
 LinkedList<T>::~LinkedList() {
     Clear();
