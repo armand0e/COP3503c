@@ -1,13 +1,12 @@
 #include <iostream>
 #include <vector>
+#include <fstream>
 #include "test.h"
 using namespace std;
 
-
 int main() {
-    
-    ABS defaultABS;
-    cout << defaultABS.getData();
+    ofstream os;
+    os.open("data.tga", ios_base::binary);
 
     return 0;
 }
