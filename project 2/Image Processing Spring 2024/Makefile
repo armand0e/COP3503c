@@ -1,1 +1,1 @@
-g++ -std=c++20 -o out src/main.cpp
+g++ -std=c++11 -o out src/main.cpp src/extra.cpp

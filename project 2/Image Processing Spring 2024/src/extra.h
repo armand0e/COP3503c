@@ -6,7 +6,6 @@
 
 using namespace std;
 
-
 struct Header {
     char idLength;
     char colorMapType;
@@ -22,3 +21,20 @@ struct Header {
     char imageDescriptor;
 };
 
+struct pixel {
+        unsigned char b;
+        unsigned char g;
+        unsigned char r;
+};
+
+struct Image{
+    string path;
+    Header header;
+    vector<vector<pixel>> imageData;
+    
+    void readHeader();
+    void printHeader();
+    void readImageData();
+    void writeImageToFile(string output);
+    Image(string file_path);
+};
