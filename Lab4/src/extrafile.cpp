@@ -24,12 +24,16 @@ void Starship::printShip() const {
     cout << "Shield capacity: " << shieldCapacity << endl;
     cout << "Maximum Warp: " << maxWarpSpeed << endl;
     cout << "Armaments:" << endl;
-    printArmaments();
-    
-    int totalFP = 0;
-    // calculate total firepower of all armaments
-    for (const auto& weapon : armaments) {
-        totalFP += weapon.firepower;
+    if (armaments.size() == 0) {
+        cout << "Unarmed" << endl;
     }
-    cout << "Total firepower: " << totalFP << endl;
+    else {
+        printArmaments();
+        int totalFP = 0;
+        // calculate total firepower of all armaments
+        for (const auto& weapon : armaments) {
+            totalFP += weapon.firepower;
+        }
+        cout << "Total firepower: " << totalFP << endl;
+    }
 }
