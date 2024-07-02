@@ -19,8 +19,10 @@ struct Starship {
     int shieldCapacity;
     float maxWarpSpeed;
     vector<Armament> armaments;
+    int totalFP = 0;
 
     void addWeapon(string weaponName, int weaponFP, float consumption);
     void printArmaments() const;
+    int getStrongestWeaponFP();
     void printShip() const;
 };

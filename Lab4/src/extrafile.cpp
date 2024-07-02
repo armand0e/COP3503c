@@ -6,6 +6,7 @@ void Starship::addWeapon(string weaponName, int weaponFP, float consumption) {
     newWeapon.firepower = weaponFP;
     newWeapon.powerConsumption = consumption;
     armaments.push_back(newWeapon);
+    totalFP += newWeapon.firepower;
 }
 
 void Starship::printArmaments() const {
@@ -13,6 +14,18 @@ void Starship::printArmaments() const {
     for (const auto& weapon : armaments) {
         cout << weapon.name << ", " << weapon.firepower << ", " << weapon.powerConsumption << endl;
     }
+}
+
+int Starship::getStrongestWeaponFP() {
+    if (armaments.size() != 0) {
+        Armament strongestWeapon = armaments[0];
+        for (const auto& weapon : armaments) {
+            if (weapon.firepower > strongestWeapon.firepower)
+                strongestWeapon = weapon;
+        }
+        return strongestWeapon.firepower;
+    }
+    return 0;
 }
 
 void Starship::printShip() const {
@@ -24,16 +37,11 @@ void Starship::printShip() const {
     cout << "Shield capacity: " << shieldCapacity << endl;
     cout << "Maximum Warp: " << maxWarpSpeed << endl;
     cout << "Armaments:" << endl;
-    if (armaments.size() == 0) {
-        cout << "Unarmed" << endl;
+    if (!totalFP == 0) {
+        printArmaments();
+        cout << "Total firepower: " << totalFP << endl;
     }
     else {
-        printArmaments();
-        int totalFP = 0;
-        // calculate total firepower of all armaments
-        for (const auto& weapon : armaments) {
-            totalFP += weapon.firepower;
-        }
-        cout << "Total firepower: " << totalFP << endl;
+        cout << "Unarmed" << endl;
     }
 }

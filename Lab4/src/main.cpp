@@ -15,7 +15,7 @@ bool readShips(const vector<string>& paths) {
         if (file.is_open()) {
             int shipCount;
             file.read(reinterpret_cast<char*>(&shipCount), 4);
-            cout << "Ship count in file \"" << path << "\": " << shipCount << endl;
+            //cout << "Ship count in file \"" << path << "\": " << shipCount << endl;
             starshipList.reserve(starshipList.size() + shipCount);
             for (int i = 0; i < shipCount; i++) {
                 Starship newStarship;
@@ -122,18 +122,23 @@ int main() {
         }
         else if (option == 2) {
             // find the starship with the strongest weapon
-			Starship strongestWeaponShip = starshipList[0];
-            for (const auto& starship : starshipList) {
-
+			Starship strongestWeapon = starshipList[0];
+            for (int i = 0; i < starshipList.size(); i++) {
+                int currentFP = starshipList[i].getStrongestWeaponFP();
+                int strongestFP = strongestWeapon.getStrongestWeaponFP();
+				if (currentFP > strongestFP)
+					strongestWeapon = starshipList[i];
 			}
+            strongestWeapon.printShip();
         }
         else if (option == 3) {
             // find the strongest starship overall
-			Starship weakestShip = starshipList[0];
+			Starship strongestShip = starshipList[0];
 			for (int i = 0; i < starshipList.size(); i++) {
-				if (starshipList[i].totalFP != 0 && starshipList[i].totalFP < weakestShip.totalFP)
-					weakestShip = starshipList[i];
+				if (starshipList[i].totalFP > strongestShip.totalFP)
+					strongestShip = starshipList[i];
 			}
+            strongestShip.printShip();
         }
         else if (option == 4) {
             // find the weakest ship (ignoring unarmed)
@@ -142,6 +147,8 @@ int main() {
 				if (starshipList[i].totalFP != 0 && starshipList[i].totalFP < weakestShip.totalFP)
 					weakestShip = starshipList[i];
 			}
+            weakestShip.printShip();
+            cout << endl;
 		}
         else if (option == 5) {
             // find unarmed ships
