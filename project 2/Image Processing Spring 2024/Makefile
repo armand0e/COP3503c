@@ -1,1 +1,1 @@
-g++ -std=c++20 -o out FileReader.cpp
+g++ -std=c++20 -o out src/main.cpp
