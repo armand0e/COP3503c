@@ -25,9 +25,9 @@ int main() {
     for (int i = 0; i < files.size(); i++) {
         // read head
         Image newImage(files[i]);
-        newImage.printHeader();
+        newImage.writeImageData("output/newCar.tga");
         cout << endl;
-        
     }
+
     return 0;
 }

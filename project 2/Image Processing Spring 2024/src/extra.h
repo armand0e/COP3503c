@@ -19,13 +19,9 @@ struct Header {
     short height;
     char bitsPerPixel;
     char imageDescriptor;
-
-    Header& operator=(Header& d) {
-        
-    }
 };
 
-struct pixel {
+struct Pixel {
         unsigned char b;
         unsigned char g;
         unsigned char r;
@@ -34,11 +30,14 @@ struct pixel {
 struct Image{
     string path;
     Header header;
-    vector<vector<pixel>> imageData;
+    vector<vector<Pixel>> pixelData;
     
-    void readHeader();
-    void printHeader();
     void readImageData();
-    void writeImageToFile(string output);
+    void writeImageData(string output);
+    void multiply();
+    void screen();
+    void subtract();
+    void addition();
+    void overlay();
     Image(string file_path);
 };
