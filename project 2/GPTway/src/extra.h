@@ -37,6 +37,8 @@ struct Image {
     void extractRed();
     void extractGreen();
     void extractBlue();
+    void addToChannel(int num, int channel);
+    void multiplyToChannel(int num, int channel);
     void combineImages(Image red, Image green, Image blue);
     void flipVertically();
     Image(string file_path);

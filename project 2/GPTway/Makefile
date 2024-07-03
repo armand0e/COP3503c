@@ -1,5 +1,5 @@
 build:
-	g++ -std=c++11 -o out.exe src/*.cpp
+	g++ -std=c++11 -o project2.out src/*.cpp
 clean:
-	del out.exe
-	del output\*.tga
+	rm project2.out
+	rm output/*.tga
