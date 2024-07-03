@@ -19,6 +19,10 @@ struct Header {
     short height;
     char bitsPerPixel;
     char imageDescriptor;
+
+    Header& operator=(Header& d) {
+        
+    }
 };
 
 struct pixel {
