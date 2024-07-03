@@ -21,7 +21,7 @@ struct Header {
     char imageDescriptor;
 };
 
-struct Image{
+struct Image {
     string path;
     Header header;
     int pixelCount;
@@ -34,5 +34,10 @@ struct Image{
     void subtract(Image otherImage);
     void addition(Image otherImage);
     void overlay(Image otherImage);
+    void extractRed();
+    void extractGreen();
+    void extractBlue();
+    void combineImages(Image red, Image green, Image blue);
+    void flipVertically();
     Image(string file_path);
 };
