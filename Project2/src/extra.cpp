@@ -6,11 +6,7 @@
 
 using namespace std;
 
-Image::Image(string file_path) {
-    path = file_path;
-    readImageData();
-}
-
+// useful funcs
 int capped(int pixelValue) {
     if (pixelValue > 255) {
         pixelValue = 255;
@@ -20,19 +16,27 @@ int capped(int pixelValue) {
     }
     return pixelValue;
 }
-
 float normalize(int pixelValue) {
     return pixelValue / 255.0f;
 }
-
 int unnormalize(float normalizedValue) {
     return static_cast<int>(normalizedValue * 255 + 0.5f);
 }
 
+////////////////////// Image Struct ////////////////////////
+
+// Constructor
+Image::Image(string file_path) {
+    // store path
+    path = file_path;
+    readImageData();
+}
+
 void Image::readImageData() {
+    // open file from path
     fstream file(path, ios_base::in | ios_base::binary);
     if (file.is_open()) {
-        // Read header
+        // read header
         file.read(&header.idLength, 1);
         file.read(&header.colorMapType, 1);
         file.read(&header.dataTypeCode, 1);
@@ -45,26 +49,29 @@ void Image::readImageData() {
         file.read(reinterpret_cast<char*>(&header.height), 2);
         file.read(&header.bitsPerPixel, 1);
         file.read(&header.imageDescriptor, 1);
-        
+        // store pixelCount to use for looping later.
         pixelCount = header.height * header.width;
+        // resize our vector ahead of time for efficiency
         pixels.resize(pixelCount, vector<unsigned char>(3));
-
-        // Read pixels
+        // read pixels
         for (int i = 0; i < pixelCount; ++i) {
-            file.read(reinterpret_cast<char*>(&pixels[i][2]), 1); // Read blue channel
-            file.read(reinterpret_cast<char*>(&pixels[i][1]), 1); // Read green channel
-            file.read(reinterpret_cast<char*>(&pixels[i][0]), 1); // Read red channel
+            // for every single pixel... 
+            for (int j = 2; j >= 0; j--) {
+                // read BGR (stored as RGB)
+                file.read(reinterpret_cast<char*>(&pixels[i][j]), 1);
+            }
         }
         file.close();
-    } else {
-        cout << "Failed to open the file for reading: " << path << endl;
+    } 
+    else {
+        throw runtime_error("Failed to open file(s)");
     }
 }
 
 void Image::writeImageData(string output) {
     fstream file(output, ios_base::out | ios_base::binary);
     if (file.is_open()) {
-        // Write header
+        // write header
         file.write(&header.idLength, 1);
         file.write(&header.colorMapType, 1);
         file.write(&header.dataTypeCode, 1);
@@ -77,24 +84,28 @@ void Image::writeImageData(string output) {
         file.write(reinterpret_cast<char*>(&header.height), 2);
         file.write(&header.bitsPerPixel, 1);
         file.write(&header.imageDescriptor, 1);
-        
-        // Write pixels
-        for (int i = 0; i < pixelCount; ++i) {
-            file.write(reinterpret_cast<char*>(&pixels[i][2]), 1); // Write blue channel
-            file.write(reinterpret_cast<char*>(&pixels[i][1]), 1); // Write green channel
-            file.write(reinterpret_cast<char*>(&pixels[i][0]), 1); // Write red channel
+        // write pixels
+        for (int i = 0; i < pixels.size(); ++i) {
+            for (int j = 2; j >= 0; j--) {
+                // write BGR (stored as RGB)
+                file.write(reinterpret_cast<char*>(&pixels[i][j]), 1);
+            }
         }
         file.close();
-    } else {
-        cout << "Failed to open the file for writing: " << output << endl;
+    } 
+    else {
+        throw runtime_error("Failed to open file(s)");
     }
 }
 
 void Image::multiply(Image otherImage) {
     for (int i = 0; i < pixelCount; i++) {
+        // for every single pixel...
         for (int j = 0; j < 3; j++) {
+            // for every channel, [R, G, B]
             int p1 = (int)pixels[i][j];
             int p2 = (int)otherImage.pixels[i][j];
+            // NP1 * NP2
             int multipliedValue = capped(unnormalize(normalize(p1) * normalize(p2)));
             pixels[i][j] = (unsigned char)multipliedValue;
         }
@@ -106,6 +117,7 @@ void Image::screen(Image otherImage) {
         for (int j = 0; j < 3; j++) {
             int p1 = (int)pixels[i][j];
             int p2 = (int)otherImage.pixels[i][j];
+            // 1 - [(1 - NP1) * (1 - NP2)]
             int screenedValue = capped(unnormalize(1 - ((1 - normalize(p1)) * (1 - normalize(p2)))));
             pixels[i][j] = (unsigned char)screenedValue;
         }
@@ -117,6 +129,7 @@ void Image::subtract(Image otherImage) {
         for (int j = 0; j < 3; j++) {
             int p1 = (int)pixels[i][j];
             int p2 = (int)otherImage.pixels[i][j];
+            // P1 - P2
             int subtractedValue = capped(p1 - p2);
             pixels[i][j] = (unsigned char)subtractedValue;
         }
@@ -128,6 +141,7 @@ void Image::addition(Image otherImage) {
         for (int j = 0; j < 3; j++) {
             int p1 = (int)pixels[i][j];
             int p2 = (int)otherImage.pixels[i][j];
+            // P1 + P2
             int sum = capped(p1 + p2);
             pixels[i][j] = (unsigned char)sum;
         }
@@ -139,6 +153,8 @@ void Image::overlay(Image otherImage) {
         for (int j = 0; j < 3; j++) {
             int p1 = (int)pixels[i][j];
             int p2 = (int)otherImage.pixels[i][j];
+            // NP2 <= 0.5: 2 * NP1 * NP2
+            // NP2 > 0.5: 1 - [2 * (1 - NP1) * (1 - NP2)]
             int overlayedValue;
             if (normalize(p2) <= 0.5)
                 overlayedValue = capped(unnormalize(2 * normalize(p1) * normalize(p2)));
@@ -151,6 +167,7 @@ void Image::overlay(Image otherImage) {
 
 void Image::extractRed() {
     for (int i = 0; i < pixelCount; i++) {
+        // set every pixel [R, G, B] 
         pixels[i][1] = pixels[i][0]; // Set green channel to red value
         pixels[i][2] = pixels[i][0]; // Set blue channel to red value
     }

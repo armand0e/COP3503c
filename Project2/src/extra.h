@@ -22,11 +22,15 @@ struct Header {
 };
 
 struct Image {
+    // path to read data from
     string path;
+    // header obj to store header data
     Header header;
+    // total number of pixels
     int pixelCount;
+    // 2-D list of all pixels, each pixel is it's own vector -> [[R, G, B], [R, G, B], ...]
     vector<vector<unsigned char>> pixels;
-    
+
     void readImageData();
     void writeImageData(string output);
     void multiply(Image otherImage);

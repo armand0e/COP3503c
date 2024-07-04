@@ -7,6 +7,7 @@
 using namespace std;
 
 int main(int argc, char* argv[]) {
+    // i put it in a loop so the Images would fall out of scope once no longer needed
     for (int i = 0; i < 10; i++) {
         if (i == 0) {
             //  Use the Multiply blending mode to combine layer1.tga (top layer) with pattern1.tga (bottom layer)
