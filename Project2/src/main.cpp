@@ -6,93 +6,72 @@
 
 using namespace std;
 
-int main(int argc, char* argv[]) {
-    // i put it in a loop so the Images would fall out of scope once no longer needed
-    for (int i = 0; i < 10; i++) {
-        if (i == 0) {
-            //  Use the Multiply blending mode to combine layer1.tga (top layer) with pattern1.tga (bottom layer)
-            Image layer1("input/layer1.tga");
-            Image pattern1("input/pattern1.tga");
-            layer1.multiply(pattern1);
-            layer1.writeImageData("output/part1.tga");
-        }
-        else if (i == 1) {
-            // Use the Subtract blending mode to combine layer2.tga (bottom layer) with car.tga (top layer).
-            Image car("input/car.tga");
-            Image layer2("input/layer2.tga");
-            car.subtract(layer2);
-            car.writeImageData("output/part2.tga");
-        }
-        else if (i == 2) {
-            // Use the Multiply blending mode to combine layer1.tga with pattern2.tga, and store the results temporarily
-            Image layer1("input/layer1.tga");
-            Image pattern2("input/pattern2.tga");
-            layer1.multiply(pattern2);
-            // Load the image text.tga and, using that as the bottom layer,
-            // combine it with the previous results of layer1/pattern2 using the Screen blending mode
-            Image text("input/text.tga");
-            layer1.screen(text);
-            layer1.writeImageData("output/part3.tga");
-        }
-        else if (i == 3) {
-            // Multiply layer2.tga with circles.tga, and store it
-            Image circles("input/circles.tga");
-            Image layer2("input/layer2.tga");
-            circles.multiply(layer2);
-            // Load pattern2.tga as the bottom layer, combine it with the previous result using the Subtract blending mode.
-            Image pattern2("input/pattern2.tga");
-            circles.subtract(pattern2);
-            circles.writeImageData("output/part4.tga");
-        }
-        else if (i == 4) {
-            // Combine layer1.tga (as the top layer) with pattern1.tga using the Overlay blending mode.
-            Image layer1("input/layer1.tga");
-            Image pattern1("input/pattern1.tga");
-            layer1.overlay(pattern1);
-            layer1.writeImageData("output/part5.tga");
-        }
-        else if (i == 5) {
-            // Load car.tga and add 200 to the green channel
-            Image car("input/car.tga");
-            car.addToChannel(200, 1);
-            car.writeImageData("output/part6.tga");
-        }
-        else if (i == 6) {
-            // Load car.tga and scale (multiply) the red channel by 4, and the blue channel by 0
-            Image car("input/car.tga");
-            car.multiplyToChannel(4, 0);
-            car.multiplyToChannel(0, 2);
-            car.writeImageData("output/part7.tga");
-            // Wrong!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        }
-        else if (i == 7) {
-            // Load car.tga and write each channel to a separate file: the red channel should be part8_r.tga,
-            // the green channel should be part8_g.tga, and the blue channel should be part8_b.tga
-            Image carRed("input/car.tga");
-            Image carGreen("input/car.tga");
-            Image carBlue("input/car.tga");
-            carBlue.extractBlue();
-            carGreen.extractGreen();
-            carRed.extractRed();
-            carRed.writeImageData("output/part8_r.tga");
-            carGreen.writeImageData("output/part8_g.tga");
-            carBlue.writeImageData("output/part8_b.tga");
-        }
-        else if (i == 8) {
-            // Load layer_red.tga, layer_green.tga and layer_blue.tga, and combine the three files
-            Image red("input/layer_red.tga");
-            Image green("input/layer_green.tga");
-            Image blue("input/layer_blue.tga");
-            red.combineImages(red, green, blue);
-            red.writeImageData("output/part9.tga");
-        }
-        else if (i == 9) {
-            // Test Flip Vertically
-            Image text2("input/text2.tga");
-            text2.flipVertically();
-            text2.writeImageData("output/part10.tga");
-            // wrong
-        }
+void printHelp() {
+    cout << "Project 2: Image Processing, Fall 2023" << endl;
+    cout << endl;
+    cout << "Usage:" << endl;
+    cout << "\t./project2.out [output] [firstImage] [method] [...]" << endl;
+}
+
+bool checkTGA(string text) {
+    if(text.substr(text.find_last_of(".") + 1) == "tga") {
+        return true;
     }
+    return false;
+}
+
+int main(int argc, char* argv[]) {
+    string output;
+    string source;
+
+    // If no or arguments provided, print help message
+    if (argc == 1) {
+        printHelp();
+        return 0;
+    }
+    output = argv[1];
+    if (output == "--help") {
+            printHelp();
+            return 0;
+        }
+    // make sure 1st arg ends in ".tga"
+    if (!checkTGA(output)) {
+        cout << "Invalid file name." << endl;
+        return 0;
+    }
+    // if 2nd arg DNE
+    if (argc == 2) {
+        cout << "Invalid file name." << endl;
+        return 0;
+    }
+    source = argv[2];
+    // make sure 2nd arg ends in ".tga"
+    if (!checkTGA(source)) {
+        cout << "Invalid file name." << endl;
+        return 0;
+    }
+    // make sure file exists
+    fstream sourceFile(source, ios_base::in | ios_base::binary);
+    // if it can't be opened it doesnt exist
+    if (!sourceFile.is_open()) {
+        cout << "File does not exist." << endl;
+        return 0;
+    }
+
+
+    /* 
+    The next few arguments describe the first image manipulation method.
+    – The third argument will be the name of the first image manipulation method. If this argument is not provided, or if the method does not exist, print "Invalid method name."
+    – If the first image manipulation method selected requires additional arguments (such as the "multiply" method, which requires the name of a second file to multiply the first with), then those arguments will be provided after the name of the manipulation algorithm. If the arguments are not provided when they should be, print "Missing argument."
+    If the first method selected does not require additional methods (such as the "flip" method), then any following arguments will be related to the next image manipulation algorithm.
+    ∗ If the method expects a filename argument, and the argument does not end in .tga, print "Invalid argument, invalid file name." If the file does not exist, print "Invalid argument, file does not exist."
+    ∗ If the method expects an integer, but receives something other than an integer, print "Invalid argument, expected number."
+    After the first image manipulation method arguments are read, any additional arguments should represent more steps in your program. Unlike the first step, these methods act on the tracking image, and therefore one image supplied to the method will be the output of the previous step.
+    – The first argument of successive methods is the name of the image manipulation method. If the method does not exist, print "Invalid method name."
+    – Any additional arguments required by the method will be provided next. If an argument is missing, print "Missing argument."
+    •
+    For commands that are not invalid (commands where some image manipulation is successfully done), the output of the command does not matter. You can print whatever you like!
+    Furthermore, your program is expected to return with a return code of zero when no errors occurred in a given command. This just requires you to use return 0; in your main routine when your program completed successfully. You are not expected to return with any specific error code for cases where your command-line interface encountered an error, however, you may find this helpful.
+     */
     return 0;
 }
