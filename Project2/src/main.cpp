@@ -20,45 +20,212 @@ bool checkTGA(string text) {
     return false;
 }
 
-int main(int argc, char* argv[]) {
-    string output;
-    string source;
+int main(int argc, const char* argv[]) {
+    int methodIndex;
+    string output; // arg 1
+    string source; // arg 2
+    string method; // arg 3
+
 
     // If no or arguments provided, print help message
     if (argc == 1) {
         printHelp();
-        return 0;
+        return -1;
     }
     output = argv[1];
     if (output == "--help") {
             printHelp();
-            return 0;
+            return -1;
         }
     // make sure 1st arg ends in ".tga"
     if (!checkTGA(output)) {
         cout << "Invalid file name." << endl;
-        return 0;
+        return -1;
     }
     // if 2nd arg DNE
     if (argc == 2) {
         cout << "Invalid file name." << endl;
-        return 0;
+        return -1;
     }
     source = argv[2];
     // make sure 2nd arg ends in ".tga"
     if (!checkTGA(source)) {
         cout << "Invalid file name." << endl;
-        return 0;
+        return -1;
     }
     // make sure file exists
-    fstream sourceFile(source, ios_base::in | ios_base::binary);
+    fstream file(source, ios_base::in | ios_base::binary);
     // if it can't be opened it doesnt exist
-    if (!sourceFile.is_open()) {
+    if (!file.is_open()) {
         cout << "File does not exist." << endl;
-        return 0;
+        return -1;
     }
+    // if 3rd arg DNE
+    if (argc == 3) {
+        cout << "Invalid method name." << endl;
+        return -1;
+    }
+    /* Methods:
+    * "multiply":
+    * "subtract":
+    * "overlay":
+    * "screen":
+    * "comvine":
+    * "flip":
+    * "onlyred":
+    * "onlygreen":
+    * "onlyblue":
+    * "addred":
+    * "addgreen":
+    * "addblue":
+    * "scalered":
+    * "scalegreen":
+    * "scaleblue":
 
+     */
+    methodIndex = 3;
+    Image sourceImage = Image(source);
+    while(true) {
+        method = argv[methodIndex];
+        /// THESE METHODS REQUIRE TGA ARGUMENTS
+        if (method == "multiply") { 
+            // 1 arg      
+            if (argc-1 <= methodIndex+1) {
+                cout << "Missing argument." << endl;
+            }
+            string other = argv[methodIndex+1];
+            if (!checkTGA(other)) {
+                cout << "Invalid argument, invalid file name." << endl;
+                return -1;
+            }
+            // make sure file exists
+            fstream otherImg(source, ios_base::in | ios_base::binary);
+            // if it can't be opened it doesnt exist
+            if (!otherImg.is_open()) {
+                cout << "Invalid argument, file does not exist." << endl;
+                return -1;
+            }
+        }
+        else if (method == "subtract") {
+            // 1 arg
+            if (argc-1 <= methodIndex+2) {
+                cout << "Missing argument." << endl;
+            }
+        }
+        else if (method == "overlay") {
+            // 1 arg
+            if (argc-1 <= methodIndex+2) {
+                cout << "Missing argument." << endl;
+            }
+        }
+        else if (method == "screen") {
+            // 1 arg
+            if (argc <= methodIndex+2) {
+                cout << "Missing argument." << endl;
+            }
+        }
+        else if (method == "combine") {
+            // 2 args
+            if (argc <= methodIndex+3) {
+                cout << "Missing argument." << endl;
+            }
+        }
+        //// THESE METHODS DO NOT USE ANY ARGUMENTS
+        else if (method == "flip") {
+            sourceImage.flipVertically();
+        }
+        else if (method == "onlyred") {
+            sourceImage.extractRed();
+        }    
+        else if (method == "onlygreen") {
+            sourceImage.extractBlue();
+        }
+        else if (method == "onlyblue") {
+            sourceImage.extractGreen();
+        }
+        
+        //// THESE METHODS REQUIRE INTEGER ARGUMENTS
+        else if (method == "addred") {
+            if (argc-1 <= methodIndex+2) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            string potentialInt = argv[methodIndex+1];
+            if (!stoi(potentialInt)) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            int arg = stoi(potentialInt);
+            sourceImage.addToChannel(arg, 0);
+            methodIndex += 2;
+        }
+        else if (method == "addgreen") {
+            if (argc-1 <= methodIndex+2) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            string potentialInt = argv[methodIndex+1];
+            if (!stoi(potentialInt)) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            int arg = stoi(potentialInt);
+            sourceImage.addToChannel(arg, 1);
+            methodIndex += 2;
+        }
+        else if (method == "addblue") {
+            if (argc <= methodIndex+2) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            string potentialInt = argv[methodIndex+1];
+            if (!stoi(potentialInt)) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            int arg = stoi(potentialInt);
+            sourceImage.addToChannel(arg, 2);
+            methodIndex += 2;
+        }
+        else if (method == "scalered") {
+            if (argc-1 <= methodIndex+1) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            string potentialInt = argv[methodIndex+1];
+            if (!stoi(potentialInt)) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            int arg = stoi(potentialInt);
+            sourceImage.multiplyToChannel(arg, 0);
+            methodIndex += 2;
+        }
+        else if (method == "scalegreen") {
+            if (argc-1 <= methodIndex+1) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            string potentialInt = argv[methodIndex+1];
+            if (!stoi(potentialInt)) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            int arg = stoi(potentialInt);
+            sourceImage.multiplyToChannel(arg, 1);
+            methodIndex += 2;
+        }
+        else if (method == "scaleblue") {
+            if (argc <= methodIndex+1) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            string potentialInt = argv[methodIndex+1];
+            if (!stoi(potentialInt)) {
+                cout << "Invalid argument, expected number." << endl;
+            }
+            int arg = stoi(potentialInt);
+            sourceImage.multiplyToChannel(arg, 2);
+            methodIndex += 2;
+        }
+        else {
+            cout << "Invalid method name." << endl;
+            return 0;
+        }
 
+        sourceImage.writeImageData(output);
+    }    
+    cout << "this is the outside" << endl;
+    sourceImage.writeImageData(output);
     /* 
     The next few arguments describe the first image manipulation method.
     – The third argument will be the name of the first image manipulation method. If this argument is not provided, or if the method does not exist, print "Invalid method name."
