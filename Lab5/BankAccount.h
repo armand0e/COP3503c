@@ -1,14 +1,21 @@
 #pragma once
 #include <iostream>
 #include <string>
-
+#include <cmath>
 using namespace std;
+
+float rounded(float num) {
+    num *= 100;
+    num += 0.5;
+    int bigNum = num;
+    return bigNum/100.00f;
+}
 
 class BankAccount {
 private: 
     // variables must be defined with these names for check 2 to work properly!
     int id;
-    std::string name;
+    string name;
 public:
     // Parameterized constructor (makes your life easier but not required)
     BankAccount(int newID, string newName) {
@@ -39,7 +46,7 @@ public:
     // Behavioral function(s): Withdraw(float)
     bool Withdraw(float num) {
         if (amount - num < 0) {
-            cout << "Overdraft Protection! Transaction Failed." << endl;
+            //cout << "Overdraft Protection! Transaction Failed." << endl;
             return false;
         }
         amount -= num;
@@ -47,14 +54,12 @@ public:
     }
     // all three overrides
     void Deposit(float num) override {
-        setAmount(amount+num);
+        amount += num;
     }
     float getAmount() override {return amount;}
     void Display() override {
-        cout << "\nChecking Account Info" << endl;
-        cout << "ID: " << BankAccount::getID() << endl;
-        cout << "Name: " << BankAccount::getName() << endl;
-        cout << "Amount: " << getAmount() << endl;
+        cout << getName() << " (" << BankAccount::getID() << "):" << endl;
+        cout << "\tChecking Account: $" << rounded(getAmount()) << endl;        
     }
 }; 
 
@@ -68,55 +73,52 @@ public:
     // Parameterized constructor (float, int, string)
     SavingsAccount(float amnt, int newID, string newName):BankAccount(newID, newName) {Deposit(amnt);}
     // Behavioral function(s): Transfer(CheckingAccount, float), CompoundEarnings(float)
-    virtual bool Transfer(CheckingAccount& checking = CheckingAccount(static_cast<float>(amount), 0, "temp"), float num = 0) {
+    virtual bool Transfer(CheckingAccount& checking, float num) {
         if (amount - num < 0) {
-            cout << "\nError, Transaction Failed. Insufficient Funds." << endl;
+            //cout << "\nError, Transaction Failed. Insufficient Funds." << endl;
             return false;
         }
         checking.Deposit(num);
         amount -= num;
         return true;
     }
-    void CompoundEarnings(float num) {amount = amount*(1+(num/100));}
+    virtual void CompoundEarnings(float num) {amount *= (1+(num/100));}
     // all three overrides
     void Deposit(float num) override {amount += num;}
     void Display() override {
-        cout << "\nSavings Account Info" << endl;
-        cout << "ID: " << BankAccount::getID() << endl;
-        cout << "Name: " << BankAccount::getName() << endl;
-        cout << "Amount: " << amount << endl;
+        cout << getName() << " (" << BankAccount::getID() << "):" << endl;
+        cout << "\tSavings Account: $" << rounded(getAmount()) << endl;
     }
     float getAmount() override {return amount;}
 };
 
 class InvestmentAccount : public CheckingAccount, private SavingsAccount {
 private:
-    float savingsAmount = 0;
-    float amount = 0;
+    float savingsAmount;
+    float amount;
 protected:
     void setAmount(float amnt) {savingsAmount = amnt;}
 public:
-    InvestmentAccount(float amnt, int newID, string newName):BankAccount(newID, newName), CheckingAccount(amnt, newID, newName), SavingsAccount(amnt, newID, newName) {Deposit(amnt);}
-    bool Transfer(CheckingAccount& checking = CheckingAccount(static_cast<float>(amount), 0, "temp"), float num = 0) override {
+    InvestmentAccount(float amnt, int newID, string newName):BankAccount(newID, newName), CheckingAccount(amnt, newID, newName), SavingsAccount(amnt, newID, newName) {Deposit(amnt); amount = 0;}
+    bool Transfer(CheckingAccount& checking, float num) override {
         if (savingsAmount - num < 0) {
-            cout << "\nError, Transaction Failed. Insufficient Funds." << endl;
+            //cout << "\nError, Transaction Failed. Insufficient Funds." << endl;
             return false;
         }
         amount += num;
         savingsAmount -= num;
         return true;
     }
+    void CompoundEarnings(float num) override {savingsAmount *= (1+(num/100));}
     void Deposit(float num) override {
         savingsAmount += num;
     }
     float getAmount() override {return savingsAmount + amount;}
     void Display() override {
-        cout << "\nInvestment Account Info" << endl;
-        cout << "ID: " << BankAccount::getID() << endl;
-        cout << "Name: " << BankAccount::getName() << endl;
-        cout << "Amount: " << getAmount() << endl;
-        cout << "Amount in investments: " << savingsAmount << endl;
-        cout << "Available to withdraw: " << amount << endl;
+        cout << getName() << " (" << BankAccount::getID() << "):" << endl;
+        cout << "\tTotal: $" << rounded(getAmount()) << endl;
+        cout << "\t\tImmediate Funds: $" << rounded(amount) << endl;
+        cout << "\t\tInvestment: $" << rounded(savingsAmount) << endl;
     }   
     
 };
