@@ -18,6 +18,7 @@ private:
     int id;
     string name;
 public:
+    int type = 0;
     // Parameterized constructor (makes your life easier but not required)
     BankAccount(int newID, string newName) {
         id = newID;
@@ -41,9 +42,7 @@ protected:
     void setAmount(float amnt) {amount = amnt;} 
 public:
     // Parameterized constructor (float, int, string)
-    CheckingAccount(float amnt, int newID, string newName):BankAccount(newID, newName) {
-        Deposit(amnt);
-    }
+    CheckingAccount(float amnt, int newID, string newName):BankAccount(newID, newName) {Deposit(amnt); type = 1;}
     // Behavioral function(s): Withdraw(float)
     bool Withdraw(float num) {
         if (amount - num < 0) {
@@ -73,7 +72,7 @@ protected:
     void setAmount(float amnt) {amount = amnt;} 
 public:
     // Parameterized constructor (float, int, string)
-    SavingsAccount(float amnt, int newID, string newName):BankAccount(newID, newName) {Deposit(amnt);}
+    SavingsAccount(float amnt, int newID, string newName):BankAccount(newID, newName) {Deposit(amnt); type = 2;}
     // Behavioral function(s): Transfer(CheckingAccount, float), CompoundEarnings(float)
     virtual bool Transfer(CheckingAccount& checking, float num) {
         if (amount - num < 0) {
@@ -84,7 +83,7 @@ public:
         amount -= num;
         return true;
     }
-    virtual float CompoundEarnings(float percent) {float earnings = amount*(1+(percent/100)); amount+= earnings; return earnings;}
+    virtual float CompoundEarnings(float percent) {float earnings = (amount*(1+percent)) - amount; amount+= earnings; return earnings;}
     // all three overrides
     void Deposit(float num) override {amount += num;}
     void Display() override {
@@ -102,7 +101,7 @@ private:
 protected:
     void setAmount(float amnt) {savingsAmount = amnt;}
 public:
-    InvestmentAccount(float amnt, int newID, string newName):BankAccount(newID, newName), CheckingAccount(amnt, newID, newName), SavingsAccount(amnt, newID, newName) {Deposit(amnt); amount = 0;}
+    InvestmentAccount(float amnt, int newID, string newName):BankAccount(newID, newName), CheckingAccount(amnt, newID, newName), SavingsAccount(amnt, newID, newName) {Deposit(amnt); type = 3; amount = 0;}
     bool Transfer(CheckingAccount& checking, float num) override {
         if (savingsAmount - num < 0) {
             //cout << "\nError, Transaction Failed. Insufficient Funds." << endl;
@@ -112,7 +111,7 @@ public:
         savingsAmount -= num;
         return true;
     }
-    float CompoundEarnings(float percent) override {float earnings = savingsAmount*(1+(percent/100)); amount+=earnings; return earnings;}
+    float CompoundEarnings(float percent) override {float earnings = (savingsAmount*(1+percent)) - savingsAmount; amount+=earnings; return earnings;}
     void Deposit(float num) override {
         savingsAmount += num;
     }

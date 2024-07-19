@@ -1,5 +1,5 @@
 build:
-	g++ main.cpp -o out
+	g++ *.cpp -o out
 clean:
 	rm out
 run:
