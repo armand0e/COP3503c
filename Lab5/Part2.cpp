@@ -89,23 +89,39 @@ struct AccountReader{
             try {
                 int id = stoi(input);
                 // input is id
+
+                // for every acc    
+                bool accFound = false;
                 for (auto it = idMap.begin(); it != idMap.end(); it++) {
                     BankAccount* acc = it->second;
-                    if (acc->type == option2) {
+                    if (acc->getID() == id) {
+                        // found acc with that id
                         acc->Display();
+                        accFound = true;
                     }
                 }
+                if (!accFound) {
+                    cout << "Could not find account!" << endl;
+                }
+
             }
             catch (invalid_argument) {
                 string name = input;
-                try {
-                    nameMap[name]->Display();
-                }
-                catch (...) {
-                    cout << "Account Name: " << input << " not found." << endl;
-                }
-                
+                // input is string
 
+                // for every acc
+                bool accFound = false;
+                for (auto it = nameMap.begin(); it != nameMap.end(); it++) {
+                    BankAccount* acc = it->second;
+                    if (acc->getName() == name) {
+                        // found acc with that id
+                        acc->Display();
+                        accFound = true;
+                    }
+                }
+                if (!accFound) {
+                    cout << "Could not find account!" << endl;
+                }
             }
         }
 
@@ -121,5 +137,5 @@ int main(int argc, char** argv) {
     AccountReader accReader;
     if (argc == 1) {Help(); return -1;}
     string path = argv[1];
-    accReader(path)
+    accReader(path);
 }
