@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <cmath>
+#include <iomanip>
 using namespace std;
 
 float rounded(float num) {
@@ -59,7 +60,8 @@ public:
     float getAmount() override {return amount;}
     void Display() override {
         cout << getName() << " (" << BankAccount::getID() << "):" << endl;
-        cout << "\tChecking Account: $" << rounded(getAmount()) << endl;        
+        cout << fixed << setprecision(2);
+        cout << "\tChecking Account: $" << getAmount() << endl;        
     }
 }; 
 
@@ -82,12 +84,13 @@ public:
         amount -= num;
         return true;
     }
-    virtual void CompoundEarnings(float num) {amount *= (1+(num/100));}
+    virtual float CompoundEarnings(float percent) {float earnings = amount*(1+(percent/100)); amount+= earnings; return earnings;}
     // all three overrides
     void Deposit(float num) override {amount += num;}
     void Display() override {
         cout << getName() << " (" << BankAccount::getID() << "):" << endl;
-        cout << "\tSavings Account: $" << rounded(getAmount()) << endl;
+        cout << fixed << setprecision(2);
+        cout << "\tSavings Account: $" << getAmount() << endl;
     }
     float getAmount() override {return amount;}
 };
@@ -109,16 +112,17 @@ public:
         savingsAmount -= num;
         return true;
     }
-    void CompoundEarnings(float num) override {savingsAmount *= (1+(num/100));}
+    float CompoundEarnings(float percent) override {float earnings = savingsAmount*(1+(percent/100)); amount+=earnings; return earnings;}
     void Deposit(float num) override {
         savingsAmount += num;
     }
     float getAmount() override {return savingsAmount + amount;}
     void Display() override {
         cout << getName() << " (" << BankAccount::getID() << "):" << endl;
-        cout << "\tTotal: $" << rounded(getAmount()) << endl;
-        cout << "\t\tImmediate Funds: $" << rounded(amount) << endl;
-        cout << "\t\tInvestment: $" << rounded(savingsAmount) << endl;
+        cout << fixed << setprecision(2);
+        cout << "\tTotal: $" << getAmount() << endl;
+        cout << "\t\tImmediate Funds: $" << amount << endl;
+        cout << "\t\tInvestment: $" << savingsAmount << endl;
     }   
     
 };
