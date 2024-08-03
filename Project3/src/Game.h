@@ -91,10 +91,16 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username)
     sf::Sprite debug(textures["debug"]);
     debug.setPosition( (colCount * 32) - 304, 32 * (rowCount + 0.5f));
 
+    //pause/play button
+    sf::Sprite play_pause(textures["pause"]);
+    play_pause.setPosition( (colCount * 32) - 240, 32 * (rowCount + 0.5f));
+
+    //leaderboard button
+    sf::Sprite leader(textures["leaderboard"]);
+    leader.setPosition( (colCount * 32) - 176, 32 * (rowCount + 0.5f));
+
     // create game board
-    Board board(rowCount, colCount, mineCount);
-    board.placeMines();
-    board.generateValues();
+    Board* board = new Board(rowCount, colCount, mineCount);
 
     while(game.isOpen())
     {
@@ -111,20 +117,35 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username)
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
                     sf::Vector2i mousePos = sf::Mouse::getPosition(game);
-                    // happy face clicks
+                    // happy face button
                     if (mousePos.x > happy.getPosition().x && mousePos.x < happy.getPosition().x + 64 && mousePos.y > happy.getPosition().y && mousePos.y < happy.getPosition().y + 64)
                     {
-                        // do happy face stuff
-
+                        delete board;
+                        board = new Board(rowCount, colCount, mineCount);
 
                     }
+                    // debug button
                     if (mousePos.x > debug.getPosition().x && mousePos.x < debug.getPosition().x + 64 && mousePos.y > debug.getPosition().y && mousePos.y < debug.getPosition().y + 64)
                     {
-                        if (board.debug == false) {board.showMines(); board.debug = true;}
-                        else {board.hideMines(); board.debug = false;}
+                        if (board->debug == false) {board->showMines(); board->debug = true;}
+                        else {board->hideMines(); board->debug = false;}
                     }
-                    // check tile clicks
-                    for (auto& tile : board.tiles)
+                    // pause/play
+                    if (mousePos.x > play_pause.getPosition().x && mousePos.x < play_pause.getPosition().x + 64 && mousePos.y > play_pause.getPosition().y && mousePos.y < play_pause.getPosition().y + 64)
+                    {
+                        // if unpaused
+                        if (!board->paused) {
+                            // show pause button
+                            board->paused = true;
+                            play_pause.setTexture(textures["play"]);
+                        } else {
+                            // otherwise show play button
+                            board->paused = false;
+                            play_pause.setTexture(textures["pause"]);
+                        }
+                    }
+                    // tiles
+                    for (auto& tile : board->tiles)
                     {
                         if (tile.contains(mousePos))
                         {
@@ -138,7 +159,7 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username)
         }
         game.clear(sf::Color::White);
         //
-        game.draw(happy); game.draw(debug);
+        game.draw(happy); game.draw(debug); game.draw(play_pause); game.draw(leader);
 
         //if win
             //happy.setTexture(textures["face_win"]);
@@ -146,7 +167,7 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username)
             //happy.setTexture(textures["face_lose"]);
 
         // draw board
-        board.Draw(game, textures);
+        board->Draw(game, textures);
         game.display();
     }
 }

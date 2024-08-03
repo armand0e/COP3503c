@@ -65,17 +65,20 @@ bool Welcome(int colCount, int rowCount, std::string& username) {
             }
             // handle events here
             if (event.type == sf::Event::TextEntered) {
-                if (event.text.unicode == 8) { // Handle backspace
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Backspace)) { // Handle backspace
                     if (!nameString.empty()) {
                         nameString.pop_back();
                     }
                 }
-                else if (event.text.unicode == 13) { // Handle Enter key
+                else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Enter)) {
                     if (!nameString.empty()) {
                         username = name.getString();
                         welcome.close(); // Close welcome window and open game window
                         break;
                     }
+                }
+                else if (event.text.unicode == 13) { // Handle Enter key
+                    
                 }
                 else if (nameString.size() < 10 && std::isalpha(event.text.unicode)) { // Handle alphabetical characters
                     nameString += static_cast<char>(event.text.unicode);

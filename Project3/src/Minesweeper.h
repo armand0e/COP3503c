@@ -12,6 +12,7 @@ struct Tile
     int value;
     int row; int col;
     bool isHidden = true;
+    bool isFlagged = false;
     bool isDebug = false;
     bool isMine = false;
     sf::Vector2f pos;
@@ -29,7 +30,16 @@ struct Tile
         sf::Sprite sprite;
         if (isHidden)
         {
-            sprite.setTexture(textures["tile_hidden"]);
+            if (isFlagged) {
+                sf::Sprite backgroundSprite(textures["tile_revealed"]);
+                backgroundSprite.setPosition(pos.x, pos.y);
+                window.draw(backgroundSprite);
+                sprite.setTexture(textures["flag"]);
+            }
+            else {
+                sprite.setTexture(textures["tile_hidden"]);
+            }
+
         }
         else
         {
@@ -61,28 +71,12 @@ struct Tile
 
 struct Board
 {
+    bool paused = false;
     bool debug = false;
     int rowCount; int colCount;
     int mineCount;
     int width; int height;
     std::vector<Tile> tiles;
-    Board(int rows, int cols, int mines)
-    {
-        rowCount = rows;
-        colCount = cols;
-        mineCount = mines;
-        int x = 0; int y = 0;
-        for (int i = 0; i < rowCount; i++)
-        {
-            for (int j = 0; j < colCount; j++)
-            {
-                Tile newTile(i,j,x,y);
-                tiles.push_back(newTile);
-                x += 32;
-            }
-            x = 0; y += 32;
-        }
-    }
     void printValues()
     {
         for (auto tile : tiles)
@@ -159,6 +153,25 @@ struct Board
             Tile* tile = &tiles[i];
             if (tile->isMine && tile->isDebug) {tile->isHidden = true; tile->isDebug = false;}
         }
+    }
+    Board(int rows, int cols, int mines)
+    {
+        rowCount = rows;
+        colCount = cols;
+        mineCount = mines;
+        int x = 0; int y = 0;
+        for (int i = 0; i < rowCount; i++)
+        {
+            for (int j = 0; j < colCount; j++)
+            {
+                Tile newTile(i,j,x,y);
+                tiles.push_back(newTile);
+                x += 32;
+            }
+            x = 0; y += 32;
+        }
+        placeMines();
+        generateValues();
     }
 };
 
