@@ -19,6 +19,4 @@ win:
 	-lsfml-window \
 	-lsfml-system \
 	--std=c++11 \
-	-o sfml-app.exe
-del:
-	del sfml-app.exe
+	-o sfml-app

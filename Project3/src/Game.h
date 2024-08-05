@@ -23,9 +23,9 @@ void loadAllTextures(std::map<std::string, sf::Texture>& textures)
     sf::Texture pause;
     pause.loadFromFile("files/images/pause.png");
     textures.emplace("pause", pause);
-    sf::Texture digits;
-    digits.loadFromFile("files/images/digits.png");
-    textures.emplace("digits", digits);
+    sf::Texture digits_sheet;
+    digits_sheet.loadFromFile("files/images/digits.png");
+    textures.emplace("digits", digits_sheet);
     sf::Texture face_happy;
     face_happy.loadFromFile("files/images/face_happy.png");
     textures.emplace("face_happy", face_happy);
@@ -73,8 +73,17 @@ void loadAllTextures(std::map<std::string, sf::Texture>& textures)
     textures.emplace("number_3", number_3);
 }
 
-void newGame(int colCount, int rowCount, int mineCount, std::string& username)
-{
+bool contains(sf::Vector2i& mousePos, sf::Sprite& sprite, int size) {
+    return (mousePos.x > sprite.getPosition().x && mousePos.x < sprite.getPosition().x + size && mousePos.y > sprite.getPosition().y && mousePos.y < sprite.getPosition().y + size);
+}
+
+void resetBoard(Board* board) {
+    Board* tmp = board;
+    board = new Board(board->rowCount, board->colCount, board->mineCount);
+    delete tmp;
+}
+
+void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
     int width = colCount*32;
     int height = (rowCount*32)+100;
     sf::RenderWindow game(sf::VideoMode(width, height), "Minesweeper", sf::Style::Close);
@@ -82,7 +91,13 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username)
     // load all textures into texture map
     std::map<std::string, sf::Texture> textures;
     loadAllTextures(textures);
-
+    
+    /* // timer digits
+    digitManager s1(textures["digits"]);
+    digitManager s2(textures["digits"]);
+    digitManager m1(textures["digits"]);
+    digitManager m2(textures["digits"]); */
+    
     //happy button
     sf::Sprite happy(textures["face_happy"]);
     happy.setPosition( ((colCount/2.0f) * 32) - 32, 32 * (rowCount + 0.5f));
@@ -101,60 +116,64 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username)
 
     // create game board
     Board* board = new Board(rowCount, colCount, mineCount);
+    
+    // load leaderboard
+    Leaderboard leaderboard(rowCount, colCount);
 
-    while(game.isOpen())
-    {
+    while(game.isOpen()) {
         sf::Event event;
-        while(game.pollEvent(event))
-        {
-            if(event.type == sf::Event::Closed)
-            {
-                game.close();
-            }
-            // handle events here
-            if (event.type == sf::Event::MouseButtonPressed)
-            {
-                if (event.mouseButton.button == sf::Mouse::Left)
-                {
-                    sf::Vector2i mousePos = sf::Mouse::getPosition(game);
-                    // happy face button
-                    if (mousePos.x > happy.getPosition().x && mousePos.x < happy.getPosition().x + 64 && mousePos.y > happy.getPosition().y && mousePos.y < happy.getPosition().y + 64)
-                    {
-                        delete board;
-                        board = new Board(rowCount, colCount, mineCount);
-
+        while(game.pollEvent(event)) {
+            if(event.type == sf::Event::Closed) {game.close();}
+            if (event.type == sf::Event::MouseButtonPressed) {
+                sf::Vector2i mousePos = sf::Mouse::getPosition(game);
+                if (event.mouseButton.button == sf::Mouse::Left) {    
+                    // HAPPY FACE BUTTON
+                    if (contains(mousePos, happy, 64)) {
+                        resetBoard(board);
                     }
+                    // LEADERBOARD BUTTON
+                    if (contains(mousePos, leader, 64)) {
+                        leaderboard.Open();
+                    }
+
+                    // Buttons that stop at the end of the game
                     
-                    // pause/play
-                    if (mousePos.x > play_pause.getPosition().x && mousePos.x < play_pause.getPosition().x + 64 && mousePos.y > play_pause.getPosition().y && mousePos.y < play_pause.getPosition().y + 64)
-                    {
-                        // if unpaused
+                    if (board->checkWinner() == 0) {
+                        // PAUSE/PLAY BUTTON
+                        if (contains(mousePos, play_pause, 64)) {
+                            // show pause texture
+                            if (!board->paused) {board->paused = true; play_pause.setTexture(textures["play"]);}  
+                            // show play texture
+                            else {board->paused = false; play_pause.setTexture(textures["pause"]);}
+                        }
+
+                        // Buttons that stop when paused...
                         if (!board->paused) {
-                            // show pause button
-                            board->paused = true;
-                            play_pause.setTexture(textures["play"]);
-                        } else {
-                            // otherwise show play button
-                            board->paused = false;
-                            play_pause.setTexture(textures["pause"]);
+                            // DEBUG BUTTON
+                            if (contains(mousePos, debug, 64)) {
+                                if (board->debug == false) {board->showMines(); board->debug = true;}
+                                else {board->hideMines(); board->debug = false;}
+                            }
+                            // TILES
+                            for (auto tile : board->tiles) {
+                                if (tile->contains(mousePos)) {
+                                    if (tile->isHidden) tile->isHidden = false;
+                                }
+                            }
                         }
                     }
-                    // if unpaused
-                    if (!board->paused) {
-                        // debug button
-                        if (mousePos.x > debug.getPosition().x && mousePos.x < debug.getPosition().x + 64 && mousePos.y > debug.getPosition().y && mousePos.y < debug.getPosition().y + 64)
-                        {
-                            if (board->debug == false) {board->showMines(); board->debug = true;}
-                            else {board->hideMines(); board->debug = false;}
-                        }
-                        // tiles
-                        for (auto tile : board->tiles)
-                        {
-                            if (tile->contains(mousePos))
-                            {
-                                if (tile->isHidden) {tile->isHidden = false;}
+                }               
+                if (event.mouseButton.button == sf::Mouse::Right) {
+                    if (board->checkWinner() == 0) { 
+                        if (!board->paused) {
+                            for (auto tile : board->tiles) {
+                                if (tile->contains(mousePos)) {
+                                    if (tile->isHidden) {
+                                        if (!tile->isFlagged) tile->isFlagged = true;
+                                        else {tile->isFlagged = false;}
+                                    }
+                                }
                             }
-
                         }
                     }
                 }
@@ -163,17 +182,26 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username)
         game.clear(sf::Color::White);
         
         
-        // if winner
-        if (board->checkWinner() == 1) {
-            // switch to winner face
-            happy.setTexture(textures["face_win"]);
-            // stop timer
+        // check game over
+        if (board->checkWinner() != 0) { 
+            // if win
+            if (board->checkWinner() == 1) {
+                // switch to winner face
+                happy.setTexture(textures["face_win"]);
+                // stop timer
 
+                // check if top time
+                
+            }
+            // if lose
+            else if (board->checkWinner() == 2) {
+                happy.setTexture(textures["face_lose"]);
+            }
+            // open leaderboard
+            leaderboard.Open();
+            resetBoard(board);
         }
-        // if lose
-        else if (board->checkWinner() == 2) {
-            happy.setTexture(textures["face_lose"]);
-        }
+        
         
         // draw buttons
         game.draw(happy); game.draw(debug); game.draw(play_pause); game.draw(leader);

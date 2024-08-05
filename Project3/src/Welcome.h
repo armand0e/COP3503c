@@ -1,12 +1,10 @@
 #pragma once
 #include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
 #include <SFML/Graphics.hpp>
 #include <cctype>
 #include <cmath>
-#include "Button.h"
 void setText(sf::Text &text, float x, float y){
     sf::FloatRect textRect = text.getLocalBounds();
     text.setOrigin(textRect.left + textRect.width/2.0f,
@@ -39,17 +37,15 @@ bool Welcome(int colCount, int rowCount, std::string& username) {
     font.loadFromFile("files/font.ttf");
 
     auto title = sf::Text{"WELCOME TO MINESWEEPER!", font, 24};
-    title.setColor(sf::Color(255,255,255,255));
     title.setStyle(sf::Text::Style::Underlined | sf::Text::Style::Bold);
     setText(title, width/2,(height/2)-150);
-
+    
     auto text = sf::Text{"Enter you Name:", font, 20};
-    text.setColor(sf::Color(255,255,255,255));
     text.setStyle(sf::Text::Style::Bold);
     setText(text, width/2,(height/2)-75);
 
     auto name = sf::Text{"", font, 18};
-    name.setColor(sf::Color(255,255,0,255));
+    name.setFillColor(sf::Color::Yellow);
     name.setStyle(sf::Text::Style::Bold);
     setText(name, width/2,(height/2)-45);
 
@@ -65,7 +61,7 @@ bool Welcome(int colCount, int rowCount, std::string& username) {
             }
             // handle events here
             if (event.type == sf::Event::TextEntered) {
-                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Backspace)) { // Handle backspace
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Backspace)) {
                     if (!nameString.empty()) {
                         nameString.pop_back();
                     }
@@ -73,25 +69,22 @@ bool Welcome(int colCount, int rowCount, std::string& username) {
                 else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::Enter)) {
                     if (!nameString.empty()) {
                         username = name.getString();
-                        welcome.close(); // Close welcome window and open game window
+                        welcome.close(); 
                         break;
                     }
-                }
-                else if (event.text.unicode == 13) { // Handle Enter key
-                    
                 }
                 else if (nameString.size() < 10 && std::isalpha(event.text.unicode)) { // Handle alphabetical characters
                     nameString += static_cast<char>(event.text.unicode);
                 }
-                nameString = capitalizeFirstLetter(nameString); // Correct the case in real-time
+                nameString = capitalizeFirstLetter(nameString);
                 name.setString(nameString);
                 setText(name, width/2,(height/2)-45);
             }
 
         }
         welcome.clear(blue);
-        // do shit here
-        welcome.draw(text); welcome.draw(title); setText(name, width/2, (height/2)-45); welcome.draw(name);
+
+        welcome.draw(text); welcome.draw(title); welcome.draw(name);
 
         welcome.display();
     }

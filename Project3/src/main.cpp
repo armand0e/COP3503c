@@ -53,8 +53,5 @@ int main(int argc, char* argv[]) {
     // Game Window
     newGame(colCount, rowCount, mineCount, username);
 
-    // Render Window
-    //sf::RenderWindow leaderboard(sf::VideoMode(colCount*16, (rowCount*16)+50), "Leaderboard", sf::Style::Close);
-
     return 0;
 }
