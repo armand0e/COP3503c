@@ -76,21 +76,21 @@ struct Board
     int rowCount; int colCount;
     int mineCount;
     int width; int height;
-    std::vector<Tile> tiles;
+    std::vector<Tile*> tiles;
     void printValues()
     {
         for (auto tile : tiles)
         {
             for (int i = 0; i < colCount; i++)
             {
-                std::cout << tile.value << " ";
+                std::cout << tile->value << " ";
             }
             std::cout << std::endl;
         }
     }
     void Draw(sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures)
     {
-       for (auto tile : tiles) {tile.Draw(window,textures);}
+       for (auto tile : tiles) {tile->Draw(window,textures);}
     }
     void placeMines()
     {
@@ -100,10 +100,10 @@ struct Board
         {
             int tileCount = rowCount*colCount;
             int randomIndex = std::rand() % tileCount;
-            if (!(tiles[randomIndex].value == 9))
+            if (!(tiles[randomIndex]->value == 9))
             {
-                tiles[randomIndex].value = 9;
-                tiles[randomIndex].isMine = true;
+                tiles[randomIndex]->value = 9;
+                tiles[randomIndex]->isMine = true;
                 mines--;
             }
         }
@@ -111,8 +111,8 @@ struct Board
     void generateValues() {
         for (int row = 0; row < rowCount; ++row) {
             for (int col = 0; col < colCount; ++col) {
-                Tile& tile = tiles[row * colCount + col];
-                if (tile.value == 9) continue; // Skip if it's a mine
+                auto tile = tiles[row * colCount + col];
+                if (tile->value == 9) continue; // Skip if it's a mine
 
                 int newValue = 0;
 
@@ -127,14 +127,14 @@ struct Board
 
                         // check edges
                         if (otherRow >= 0 && otherRow < rowCount && otherCol >= 0 && otherCol < colCount) {
-                            if (tiles[otherRow * colCount + otherCol].value == 9) {
+                            if (tiles[otherRow * colCount + otherCol]->value == 9) {
                                 newValue++;
                             }
                         }
                     }
                 }
                 // assign new value
-                tile.value = newValue;
+                tile->value = newValue;
             }
         }
     }
@@ -142,7 +142,7 @@ struct Board
     {
         for (int i = 0; i < tiles.size(); i++)
         {
-            Tile* tile = &tiles[i];
+            auto tile = tiles[i];
             if (tile->isHidden && tile->isMine) {tile->isHidden = false; tile->isDebug = true;}
         }
     }
@@ -150,7 +150,7 @@ struct Board
     {
         for (int i = 0; i < tiles.size(); i++)
         {
-            Tile* tile = &tiles[i];
+            auto tile = tiles[i];
             if (tile->isMine && tile->isDebug) {tile->isHidden = true; tile->isDebug = false;}
         }
     }
@@ -164,7 +164,7 @@ struct Board
         {
             for (int j = 0; j < colCount; j++)
             {
-                Tile newTile(i,j,x,y);
+                Tile* newTile = new Tile(i,j,x,y);
                 tiles.push_back(newTile);
                 x += 32;
             }
@@ -172,6 +172,24 @@ struct Board
         }
         placeMines();
         generateValues();
+    }
+    int checkWinner() {
+        // 0 = None, 1 = Win, 2 = Lose
+        int winCode = 0;
+        int valid = 0;
+        for (auto tile : tiles) {
+            if (!tile->isHidden) {
+                if (tile->isMine && !tile->isDebug) {return 2;}
+                valid += 1;
+            }
+        }
+        if (valid == tiles.size() - mineCount) {return 1;}
+        return 0;
+    }
+    ~Board() {
+        for (auto tile : tiles) {
+            delete tile;
+        }
     }
 };
 

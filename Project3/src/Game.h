@@ -124,12 +124,7 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username)
                         board = new Board(rowCount, colCount, mineCount);
 
                     }
-                    // debug button
-                    if (mousePos.x > debug.getPosition().x && mousePos.x < debug.getPosition().x + 64 && mousePos.y > debug.getPosition().y && mousePos.y < debug.getPosition().y + 64)
-                    {
-                        if (board->debug == false) {board->showMines(); board->debug = true;}
-                        else {board->hideMines(); board->debug = false;}
-                    }
+                    
                     // pause/play
                     if (mousePos.x > play_pause.getPosition().x && mousePos.x < play_pause.getPosition().x + 64 && mousePos.y > play_pause.getPosition().y && mousePos.y < play_pause.getPosition().y + 64)
                     {
@@ -144,28 +139,44 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username)
                             play_pause.setTexture(textures["pause"]);
                         }
                     }
-                    // tiles
-                    for (auto& tile : board->tiles)
-                    {
-                        if (tile.contains(mousePos))
+                    // if unpaused
+                    if (!board->paused) {
+                        // debug button
+                        if (mousePos.x > debug.getPosition().x && mousePos.x < debug.getPosition().x + 64 && mousePos.y > debug.getPosition().y && mousePos.y < debug.getPosition().y + 64)
                         {
-                            if (tile.isHidden) {tile.isHidden = false;}
+                            if (board->debug == false) {board->showMines(); board->debug = true;}
+                            else {board->hideMines(); board->debug = false;}
                         }
+                        // tiles
+                        for (auto tile : board->tiles)
+                        {
+                            if (tile->contains(mousePos))
+                            {
+                                if (tile->isHidden) {tile->isHidden = false;}
+                            }
 
+                        }
                     }
-
                 }
             }
         }
         game.clear(sf::Color::White);
-        //
+        
+        
+        // if winner
+        if (board->checkWinner() == 1) {
+            // switch to winner face
+            happy.setTexture(textures["face_win"]);
+            // stop timer
+
+        }
+        // if lose
+        else if (board->checkWinner() == 2) {
+            happy.setTexture(textures["face_lose"]);
+        }
+        
+        // draw buttons
         game.draw(happy); game.draw(debug); game.draw(play_pause); game.draw(leader);
-
-        //if win
-            //happy.setTexture(textures["face_win"]);
-        //if lose
-            //happy.setTexture(textures["face_lose"]);
-
         // draw board
         board->Draw(game, textures);
         game.display();
