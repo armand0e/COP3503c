@@ -17,7 +17,6 @@ struct Leaderboard {
     std::vector<Player> players;
     int width;
     int height;
-    std::string content;
 
     Leaderboard(Board* brd) {
         std::ifstream file("files/leaderboard.txt");
@@ -38,9 +37,17 @@ struct Leaderboard {
         height = (board->rowCount * 16) + 50;
         isOpen = false;
     }
-    void Open() {
+    std::string getContent() {
+        std::string content = "";
+        for (int i = 1; i <= 5; i++) {
+            content += i + ".\t" + players[i-1].name + "\t" players[i-1].time + "\n";
+        }
+        return content;
+    }
+    void Open(sf::RenderWindow& main, std::map<std::string, sf::Texture>& textures) {
         board->getNaked();
-
+        board->Draw(main, textures);
+        main.display();
         sf::Font font;
         font.loadFromFile("files/font.ttf");
         auto title = sf::Text{"LEADERBOARD", font, 20};
@@ -56,7 +63,10 @@ struct Leaderboard {
             sf::Event event;
             while(window.pollEvent(event)) {
                 if(event.type == sf::Event::Closed) {
-                    isOpen = false; 
+                    isOpen = false;
+                    board->unNaked();
+                    board->Draw(main, textures);
+                    main.display(); 
                     window.close();
                 }
             }

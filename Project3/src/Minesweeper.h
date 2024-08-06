@@ -144,6 +144,16 @@ struct Board {
             if (tile->isMine && tile->isDebug) {tile->isHidden = true; tile->isDebug = false;}
         }
     }
+    void getNaked() {
+        for (auto tile : tiles) {
+            tile->isNaked = true;
+        }
+    }
+    void unNaked() {
+        for (auto tile : tiles) {
+            tile->isNaked = false;
+        }
+    }
     Board(int rows, int cols, int mines) {
         rowCount = rows;
         colCount = cols;

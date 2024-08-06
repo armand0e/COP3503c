@@ -118,7 +118,7 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
     Board* board = new Board(rowCount, colCount, mineCount);
     
     // load leaderboard
-    Leaderboard leaderboard(rowCount, colCount);
+    Leaderboard leaderboard(board);
 
     while(game.isOpen()) {
         sf::Event event;
@@ -133,7 +133,7 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
                     }
                     // LEADERBOARD BUTTON
                     if (contains(mousePos, leader, 64)) {
-                        leaderboard.Open();
+                        leaderboard.Open(game, textures);
                     }
 
                     // Buttons that stop at the end of the game
@@ -162,7 +162,8 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
                             }
                         }
                     }
-                }               
+                }
+                // flag tiles               
                 if (event.mouseButton.button == sf::Mouse::Right) {
                     if (board->checkWinner() == 0) { 
                         if (!board->paused) {
@@ -198,8 +199,8 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
                 happy.setTexture(textures["face_lose"]);
             }
             // open leaderboard
-            leaderboard.Open();
-            resetBoard(board);
+            leaderboard.Open(game, textures);
+            
         }
         
         
