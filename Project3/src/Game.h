@@ -8,6 +8,7 @@
 #include <cmath>
 #include "Minesweeper.h"
 #include "Leaderboard.h"
+#include "Timer.h"
 
 void loadAllTextures(std::map<std::string, sf::Texture>& textures)
 {
@@ -77,15 +78,10 @@ bool contains(sf::Vector2i& mousePos, sf::Sprite& sprite, int size) {
     return (mousePos.x > sprite.getPosition().x && mousePos.x < sprite.getPosition().x + size && mousePos.y > sprite.getPosition().y && mousePos.y < sprite.getPosition().y + size);
 }
 
-void resetBoard(Board* board) {
-    Board* tmp = board;
-    board = new Board(board->rowCount, board->colCount, board->mineCount);
-    delete tmp;
-}
-
 void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
     int width = colCount*32;
     int height = (rowCount*32)+100;
+    bool firstRun = true;
     sf::RenderWindow game(sf::VideoMode(width, height), "Minesweeper", sf::Style::Close);
 
     // load all textures into texture map
@@ -117,10 +113,19 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
     // create game board
     Board* board = new Board(rowCount, colCount, mineCount);
     
+    // create counter and timer
+    Counter counter(textures["digits"], rowCount, colCount);
+    Timer timer(textures["digits"], rowCount, colCount);
+    counter.setNum(mineCount);
+    timer.setTime(10, 0);
+    
+
     // load leaderboard
     Leaderboard leaderboard(board);
-
+    
+    timer.start();
     while(game.isOpen()) {
+
         sf::Event event;
         while(game.pollEvent(event)) {
             if(event.type == sf::Event::Closed) {game.close();}
@@ -129,25 +134,43 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
                 if (event.mouseButton.button == sf::Mouse::Left) {    
                     // HAPPY FACE BUTTON
                     if (contains(mousePos, happy, 64)) {
-                        resetBoard(board);
+                        timer.reset();
+                        board->reset();
+                        timer.play(); 
+                        board->paused = false; 
+                        play_pause.setTexture(textures["pause"]);
+                        counter.setNum(mineCount);
+                        happy.setTexture(textures["face_happy"]);
+                        firstRun = true;
                     }
                     // LEADERBOARD BUTTON
                     if (contains(mousePos, leader, 64)) {
+                        timer.stop();
                         leaderboard.Open(game, textures);
+                        if (!board->paused) timer.play();
                     }
 
-                    // Buttons that stop at the end of the game
-                    
+                    // Buttons that stop at the end of the game:
                     if (board->checkWinner() == 0) {
                         // PAUSE/PLAY BUTTON
                         if (contains(mousePos, play_pause, 64)) {
                             // show pause texture
-                            if (!board->paused) {board->paused = true; play_pause.setTexture(textures["play"]);}  
+                            if (!board->paused) {
+                                timer.stop(); 
+                                board->paused = true; 
+                                play_pause.setTexture(textures["play"]);
+                                board->getNaked();
+                            }  
                             // show play texture
-                            else {board->paused = false; play_pause.setTexture(textures["pause"]);}
+                            else {
+                                timer.play(); 
+                                board->paused = false; 
+                                play_pause.setTexture(textures["pause"]);
+                                board->unNaked();
+                            }
                         }
 
-                        // Buttons that stop when paused...
+                        // Buttons that also stop when paused...
                         if (!board->paused) {
                             // DEBUG BUTTON
                             if (contains(mousePos, debug, 64)) {
@@ -157,21 +180,52 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
                             // TILES
                             for (auto tile : board->tiles) {
                                 if (tile->contains(mousePos)) {
-                                    if (tile->isHidden) tile->isHidden = false;
+                                    if (tile->isHidden && !tile->isFlagged) {
+                                        board->revealTile(tile->row, tile->col);
+                                        // show tile
+                                        tile->isHidden = false;
+
+                                        // check all 8 neighbors
+                                        for (int i = -1; i <= 1; ++i) {
+                                            for (int j = -1; j <= 1; ++j) {
+                                                // self check
+                                                if (i == 0 && j == 0) continue;
+                                                
+                                                // either row/col, above/below or left/right
+                                                int otherRow = tile->row + i;
+                                                int otherCol = tile->col + j;
+
+                                                // check edges
+                                                if (otherRow >= 0 && otherRow < rowCount && otherCol >= 0 && otherCol < colCount) {
+                                                    if (board->tiles[otherRow * colCount + otherCol]->isEmpty) {
+                                                        board->tiles[otherRow * colCount + otherCol]->isHidden = false;
+                                                    }
+                                                }
+                                            }
+                                        }           
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                // flag tiles               
+                // right click
                 if (event.mouseButton.button == sf::Mouse::Right) {
                     if (board->checkWinner() == 0) { 
                         if (!board->paused) {
                             for (auto tile : board->tiles) {
                                 if (tile->contains(mousePos)) {
                                     if (tile->isHidden) {
-                                        if (!tile->isFlagged) tile->isFlagged = true;
-                                        else {tile->isFlagged = false;}
+                                        if (!tile->isFlagged) {
+                                            // flag
+                                            counter.setNum(counter.num - 1);
+                                            tile->isFlagged = true;
+                                        }
+                                        else {
+                                            // unflag
+                                            counter.setNum(counter.num + 1);
+                                            tile->isFlagged = false;
+                                        }
                                     }
                                 }
                             }
@@ -181,8 +235,9 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
             }
         }
         game.clear(sf::Color::White);
-        
-        
+        // update and draw timer
+        timer.update(); timer.draw(game);
+        counter.draw(game);
         // check game over
         if (board->checkWinner() != 0) { 
             // if win
@@ -190,17 +245,27 @@ void newGame(int colCount, int rowCount, int mineCount, std::string& username) {
                 // switch to winner face
                 happy.setTexture(textures["face_win"]);
                 // stop timer
-
+                timer.stop();
                 // check if top time
-                
+                if (firstRun) {
+                    int minTens = timer.m1.getValue();
+                    int minOnes = timer.m2.getValue();
+                    int secTens = timer.s1.getValue();
+                    int secOnes = timer.s2.getValue();
+                    Player current;
+                    current.time = std::to_string(minTens) + std::to_string(minOnes) + ":" + std::to_string(secTens) + std::to_string(secOnes);
+                    current.name = username;
+                    leaderboard.update(current);
+                    firstRun = false;
+                }
             }
             // if lose
             else if (board->checkWinner() == 2) {
                 happy.setTexture(textures["face_lose"]);
+                board->showMines();
+                timer.stop();
+                
             }
-            // open leaderboard
-            leaderboard.Open(game, textures);
-            
         }
         
         

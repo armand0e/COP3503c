@@ -16,6 +16,7 @@ struct Tile
     bool isDebug = false;
     bool isMine = false;
     bool isNaked = false;
+    bool isEmpty = false;
     sf::Vector2f pos;
 
     Tile(int i, int j , int x, int y)
@@ -25,6 +26,7 @@ struct Tile
         col = j;
         pos.x = x;
         pos.y = y;
+        if (value == 0) isEmpty = true;
     }
     void Draw(sf::RenderWindow& window, std::map<std::string, sf::Texture>& textures)
     {
@@ -45,7 +47,7 @@ struct Tile
                 }
 
             } else {
-                if (value == 0) sprite.setTexture(textures["tile_revealed"]);
+                if (value == 0) {sprite.setTexture(textures["tile_revealed"]); isEmpty = true;}
                 else {
                     sf::Sprite backgroundSprite(textures["tile_revealed"]);
                     backgroundSprite.setPosition(pos.x, pos.y);
@@ -106,11 +108,8 @@ struct Board {
         for (int row = 0; row < rowCount; ++row) {
             for (int col = 0; col < colCount; ++col) {
                 auto tile = tiles[row * colCount + col];
-                if (tile->value == 9) continue; // Skip if it's a mine
-
+                if (tile->value == 9) continue;
                 int newValue = 0;
-
-                // Check all 8 neighbors
                 for (int i = -1; i <= 1; ++i) {
                     for (int j = -1; j <= 1; ++j) {
                         // self check
@@ -135,13 +134,18 @@ struct Board {
     void showMines() {
         for (int i = 0; i < tiles.size(); i++) {
             auto tile = tiles[i];
-            if (tile->isHidden && tile->isMine) {tile->isHidden = false; tile->isDebug = true;}
+            if (tile->isHidden && tile->isMine) {
+                tile->isHidden = false; 
+                tile->isDebug = true;
+            }
         }
     }
     void hideMines() {
-        for (int i = 0; i < tiles.size(); i++) {
-            auto tile = tiles[i];
-            if (tile->isMine && tile->isDebug) {tile->isHidden = true; tile->isDebug = false;}
+        for (auto tile : tiles) {
+            if (tile->isMine && tile->isDebug) {
+                tile->isHidden = true; 
+                tile->isDebug = false;
+            }
         }
     }
     void getNaked() {
@@ -177,16 +181,56 @@ struct Board {
         for (auto tile : tiles) {
             if (!tile->isHidden) {
                 if (tile->isMine && !tile->isDebug) {return 2;}
-                valid += 1;
+                if (!tile->isDebug) valid += 1;
             }
         }
         if (valid == tiles.size() - mineCount) {return 1;}
         return 0;
     }
+   void revealTile(int row, int col) {
+        if (row < 0 || row >= rowCount || col < 0 || col >= colCount) return;
+        Tile* tile = tiles[row * colCount + col];
+        if (!tile->isHidden || tile->isFlagged) return;
+        tile->isHidden = false;
+        if (tile->value > 0) return;
+        for (int i = -1; i <= 1; ++i) {
+            for (int j = -1; j <= 1; ++j) {
+                // self check
+                if (i == 0 && j == 0) continue;
+
+                int neighborRow = row + i;
+                int neighborCol = col + j;
+                if (neighborRow >= 0 && neighborRow < rowCount && neighborCol >= 0 && neighborCol < colCount) {
+                    Tile* neighborTile = tiles[neighborRow * colCount + neighborCol];
+                    if (neighborTile->isHidden) {
+                        if (neighborTile->value == 0) revealTile(neighborRow, neighborCol); 
+                    }
+                }
+            }
+        }
+    }
+    
     ~Board() {
         for (auto tile : tiles) {
             delete tile;
         }
+    }
+    void reset() {
+        for (auto tile: tiles) {
+            delete tile;
+        }
+        tiles.clear();
+        int x = 0; int y = 0;
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < colCount; j++) {
+                Tile* newTile = new Tile(i,j,x,y);
+                tiles.push_back(newTile);
+                x += 32;
+            }
+            x = 0; y += 32;
+        }
+        placeMines();
+        generateValues();    
     }
 };
 
